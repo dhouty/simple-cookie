@@ -14,7 +14,7 @@ function printExpires(expires) {
     if (!expires) return false;
     if (typeof expires == 'string') expires = new Date(expires);
     if (typeof expires == 'number') expires = new Date(expires);
-    var n = (expires.valueOf() - (new Date()).valueOf()) / 1000;
+    var n = (expires.valueOf() - (new Date()).valueOf()) / 1000; // gets the number of seconds between now and the date referred to by expires
     return 'Expires=' + expires.toGMTString() + ';Max-Age=' + Math.round(n);
 }
 
@@ -37,7 +37,7 @@ exports.stringify = function(obj) {
         (typeof obj.domain != 'undefined' && obj.domain ? 'Domain=' + obj.domain : ''),
         (typeof obj.secure != 'undefined' && obj.secure ? 'secure' : ''),
         (typeof obj.httponly != 'undefined' && obj.httponly ? 'HttpOnly' : '')
-    ].join(';').replace(/;+/g, ';').replace(/;$/, '').replace(/;/g, '; ');
+    ].join(';').replace(/;+/g, ';').replace(/;$/, '').replace(/;/g, '; '); // joins the array of cookie attributes with semicolons and replaces successive semicolons with just one
 }
 
 /**
@@ -48,13 +48,16 @@ exports.stringify = function(obj) {
  * @returns {CookieObject} An object containing information about the cookie
  */
 exports.parse = function(string, path, domain) {
+    // splits up the cookie string into an array of its various attributes
     var s = string.replace(/;\s+/g, ';').split(';')
         .map(function(s) {
             return s.replace(/\s+\=\s+/g, '=').split('=');
         });
 
+    // removes the first element from s and stores in it n
     var n = s.shift();
 
+    // sets up the default values for the cookie object to be returned
     var obj = {};
     obj.expires = false;
     obj.httponly = false;
@@ -62,6 +65,7 @@ exports.parse = function(string, path, domain) {
     obj.path = path || '/';
     obj.domain = domain || '';
 
+    // initializes the functions used to modify the cookie object
     var I, f = {
         'httponly': function() {
             obj.httponly = true;
@@ -84,6 +88,7 @@ exports.parse = function(string, path, domain) {
         }
     };
 
+    // loops over each of the cookie's attributes and calls the respective method to modify the cookie object
     for (var i in s) {
         I = s[i][0].toLowerCase();
         if (typeof f[I] != 'undefined') f[I](s[i].length == 2 ? s[i][1] : '');
